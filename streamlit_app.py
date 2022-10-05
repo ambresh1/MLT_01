@@ -174,14 +174,14 @@ name=st.text_input('Enter New File Name: ')
 #data=getText("C:\Users\Ambresh C\Desktop\Python Files\Translators\Trail Doc of 500 words.docx")
 #if datas :
     #if st.button(label='Data Process'):
-@ray.remote
+#@ray.remote
 binary_output = BytesIO()
 if st.button(label='Translate'):
     st.spinner('Waiting...')
     btTranslator.remote(datas).save(binary_output)
     binary_output.getbuffer()
     st.success("Translated")
-@ray.remote
+#@ray.remote
 binary_output2 = BytesIO()
 if st.button(label='Translate'):
     st.spinner('Waiting...')
