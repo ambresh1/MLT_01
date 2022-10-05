@@ -13,6 +13,8 @@ import torch
 from docx import Document
 from time import sleep
 from stqdm import stqdm
+import ray
+
 
 import docx
 def getText(filename):
@@ -29,8 +31,10 @@ def getText(filename):
 # tokenizer = MarianTokenizer.from_pretrained(mname)
 # model = MarianMTModel.from_pretrained(mname)
 # model.to(device)
+ray.init()
 
 #@st.cache
+@ray.remote
 def btTranslator(docxfile):
   if torch.cuda.is_available():  
     dev = "cuda"
@@ -93,6 +97,73 @@ def btTranslator(docxfile):
   return files
 
 
+#######################################################
+@ray.remote
+def btTranslator2(docxfile):
+  if torch.cuda.is_available():  
+    dev = "cuda"
+  else:  
+    dev = "cpu" 
+  device = torch.device(dev)
+  a=getText(docxfile)
+  a1=a.split('\n')
+  bigtext='''  '''
+  for a in a1:
+    bigtext=bigtext+'\n'+a
+    
+  files=Document()
+  
+  a="Helsinki-NLP/opus-mt-en-ru"
+  b="Helsinki-NLP/opus-mt-ru-fr"
+  c="Helsinki-NLP/opus-mt-fr-en"
+  # d="Helsinki-NLP/opus-mt-es-en"
+  langs=[a,b,c]
+  text=bigtext
+  
+  for _,lang in zip(stqdm(langs),langs):
+        st.spinner('Wait for it...')
+        sleep(0.5)
+        # mname = '/content/drive/MyDrive/Transformers Models/opus-mt-en-hi-Trans Model'
+        tokenizer = AutoTokenizer.from_pretrained(lang)
+        model = AutoModelForSeq2SeqLM.from_pretrained(lang)
+        model.to(device)
+        lt = LineTokenizer()
+        batch_size = 64
+        paragraphs = lt.tokenize(bigtext)   
+        translated_paragraphs = []
+        
+        for _, paragraph in zip(stqdm(paragraphs),paragraphs):
+            st.spinner('Wait for it...')
+        # ######################################
+            sleep(0.5)
+
+        # ######################################
+            sentences = sent_tokenize(paragraph)
+            batches = math.ceil(len(sentences) / batch_size)     
+            translated = []
+            for i in range(batches):
+                sent_batch = sentences[i*batch_size:(i+1)*batch_size]
+                model_inputs = tokenizer(sent_batch, return_tensors="pt", padding=True, truncation=True, max_length=500).to(device)
+                with torch.no_grad():
+                    translated_batch = model.generate(**model_inputs)
+                    translated += translated_batch
+                translated = [tokenizer.decode(t, skip_special_tokens=True) for t in translated]
+                translated_paragraphs += [" ".join(translated)]
+                #files.add_paragraph(translated)
+        translated_text = "\n".join(translated_paragraphs)
+        bigtext=translated_text
+  files.add_paragraph(bigtext) 
+  #files2save=files.save("Translated.docx")
+  #files.save("Translated.docx")
+  #binary_output = BytesIO()
+  #f=files.save(binary_output)
+  #f2=f.getvalue()
+  return files
+
+
+ray.get([func1.remote(filename, addFiles, dir1), func2.remote(filename, addFiles, dir2)])
+
+
   #return translated_text
 st.title('Translator App')
 st.markdown("Translate from Docx file")
@@ -103,14 +174,24 @@ name=st.text_input('Enter New File Name: ')
 #data=getText("C:\Users\Ambresh C\Desktop\Python Files\Translators\Trail Doc of 500 words.docx")
 #if datas :
     #if st.button(label='Data Process'):
+@ray.remote
 binary_output = BytesIO()
 if st.button(label='Translate'):
     st.spinner('Waiting...')
-    btTranslator(datas).save(binary_output)
+    btTranslator.remote(datas).save(binary_output)
+    binary_output.getbuffer()
+    st.success("Translated")
+@ray.remote
+binary_output2 = BytesIO()
+if st.button(label='Translate'):
+    st.spinner('Waiting...')
+    btTranslator2.remote(datas).save(binary_output)
     binary_output.getbuffer()
     st.success("Translated")
 
-st.download_button(label='Download Translated File',file_name=(f"{name}_Translated.docx"), data=binary_output.getvalue())
+# st.download_button(label='Download Translated File',file_name=(f"{name}_Translated.docx"), data=binary_output.getvalue())
+st.download_button(label='Download Translated File',file_name=(f"{name}_Translated.docx"), data=ray.get([binary_output.getvalue(),binary_output2.getvalue()])
+
 #files.save(f"{name}_Translated.docx")
 #else:
  #   st.text('Upload File and Start the process')
