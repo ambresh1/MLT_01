@@ -87,6 +87,7 @@ def btTranslator(docxfile):
                 #files.add_paragraph(translated)
         translated_text = "\n".join(translated_paragraphs)
         bigtext=translated_text
+        print(bigtext)
   files.add_paragraph(bigtext) 
   print('func1: finishing')
   #files2save=files.save("Translated.docx")
@@ -94,7 +95,7 @@ def btTranslator(docxfile):
   #binary_output = BytesIO()
   #f=files.save(binary_output)
   #f2=f.getvalue()
-  return files
+  #return files
 ######################################################################
 def btTranslator2(docxfile):
   print('func2: starting')
@@ -150,6 +151,7 @@ def btTranslator2(docxfile):
                 #files.add_paragraph(translated)
         translated_text = "\n".join(translated_paragraphs)
         bigtext=translated_text
+        #print(bigtext)
   files.add_paragraph(bigtext) 
   print('func2: finishing')
   #files2save=files.save("Translated.docx")
@@ -157,7 +159,7 @@ def btTranslator2(docxfile):
   #binary_output = BytesIO()
   #f=files.save(binary_output)
   #f2=f.getvalue()
-  return files
+  #return files
 
 
 #######################################################
@@ -177,20 +179,21 @@ st.title('Translator App')
 st.markdown("Translate from Docx file")
 st.subheader("File Upload")
 
-datas=st.file_uploader("Original File")
+datas=st.file_uploader("Original File", accept_multiple_files=True)
 name=st.text_input('Enter New File Name: ')
 #data=getText("C:\Users\Ambresh C\Desktop\Python Files\Translators\Trail Doc of 500 words.docx")
-#if datas :
-    #if st.button(label='Data Process'):
+if datas :
+    if st.button(label='Data Process'):
+        runInParallel(st.text(btTranslator(datas[0])),st.text(btTranslator2(datas[1)))
 
-binary_output = BytesIO()
-if st.button(label='Translate'):
-    st.spinner('Waiting...')
-    runInParallel(btTranslator(datas).save(binary_output),btTranslator2(datas).save(binary_output))
-    binary_output.getbuffer()
-    st.success("Translated")
+# binary_output = BytesIO()
+# if st.button(label='Translate'):
+#     st.spinner('Waiting...')
+#     runInParallel(btTranslator(datas).save(binary_output),btTranslator2(datas).save(binary_output))
+#     binary_output.getbuffer()
+#     st.success("Translated")
 
-st.download_button(label='Download Translated File',file_name=(f"{name}_Translated.docx"), data=binary_output.getvalue())
+# st.download_button(label='Download Translated File',file_name=(f"{name}_Translated.docx"), data=binary_output.getvalue())
 
 #files.save(f"{name}_Translated.docx")
 #else:
