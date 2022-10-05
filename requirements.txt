@@ -10,3 +10,4 @@ ipywidgets
 gradio
 sacremoses
 stqdm
+multiprocessing
