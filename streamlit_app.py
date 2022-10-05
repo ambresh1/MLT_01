@@ -161,7 +161,7 @@ def btTranslator2(docxfile):
   return files
 
 
-ray.get([func1.remote(filename, addFiles, dir1), func2.remote(filename, addFiles, dir2)])
+# ray.get([func1.remote(filename, addFiles, dir1), func2.remote(filename, addFiles, dir2)])
 
 
   #return translated_text
