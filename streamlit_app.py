@@ -13,7 +13,6 @@ import torch
 from docx import Document
 from time import sleep
 from stqdm import stqdm
-from multiprocessing import Process
 
 import docx
 def getText(filename):
@@ -32,9 +31,7 @@ def getText(filename):
 # model.to(device)
 
 #@st.cache
-
 def btTranslator(docxfile):
-#   print('func1: starting')
   if torch.cuda.is_available():  
     dev = "cuda"
   else:  
@@ -87,20 +84,13 @@ def btTranslator(docxfile):
                 #files.add_paragraph(translated)
         translated_text = "\n".join(translated_paragraphs)
         bigtext=translated_text
-#         print(bigtext)
   files.add_paragraph(bigtext) 
-#   print('func1: finishing')
   #files2save=files.save("Translated.docx")
   #files.save("Translated.docx")
   #binary_output = BytesIO()
   #f=files.save(binary_output)
   #f2=f.getvalue()
   return files
-######################################################################
-
-
-#######################################################
-
 
 
   #return translated_text
@@ -108,19 +98,19 @@ st.title('Translator App')
 st.markdown("Translate from Docx file")
 st.subheader("File Upload")
 
-datas=st.file_uploader("Original File", accept_multiple_files=False)
+datas=st.file_uploader("Original File")
 name=st.text_input('Enter New File Name: ')
 #data=getText("C:\Users\Ambresh C\Desktop\Python Files\Translators\Trail Doc of 500 words.docx")
-
+#if datas :
+    #if st.button(label='Data Process'):
 binary_output = BytesIO()
 if st.button(label='Translate'):
     st.spinner('Waiting...')
-    runInParallel(btTranslator(datas).save(binary_output),btTranslator2(datas).save(binary_output))
+    btTranslator(datas).save(binary_output)
     binary_output.getbuffer()
     st.success("Translated")
 
 st.download_button(label='Download Translated File',file_name=(f"{name}_Translated.docx"), data=binary_output.getvalue())
-
 #files.save(f"{name}_Translated.docx")
 #else:
  #   st.text('Upload File and Start the process')
